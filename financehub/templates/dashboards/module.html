@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} | Dashboard{% endblock %}
+{% block page_title %}Dashboard {{ title }}{% endblock %}
+{% block content %}
+<form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-3">
+        <label class="form-label">Año</label>
+        <select name="year" class="form-select">
+            {% for item in years %}
+                <option value="{{ item }}" {% if item == year %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Mes</label>
+        <select name="month" class="form-select">
+            {% for value,label in month_options %}
+                <option value="{{ value }}" {% if value == month %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary">Filtrar</button>
+    </div>
+</form>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card card-kpi p-3">
+            <h6>Total del mes</h6>
+            <h3>${{ total_month|floatformat:2 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card p-3">
+            <h6>Totales por mes (12 meses)</h6>
+            <canvas id="monthlySeries"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-4">
+    <div class="col-lg-4">
+        <div class="card p-3">
+            <h6>Distribución por categoría</h6>
+            <canvas id="categoryPie"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card p-3">
+            <h6>Evolución diaria</h6>
+            <canvas id="dailyLine"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card p-3">
+            <h6>Top categorías</h6>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_categories %}
+                        <tr>
+                            <td>{{ item.category__name }}</td>
+                            <td class="text-end">${{ item.total|floatformat:2 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center">Sin datos</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    new Chart(document.getElementById('monthlySeries'), {
+        type: 'bar',
+        data: {
+            labels: {{ series_labels|safe }},
+            datasets: [{label: 'Total', data: {{ series_data|safe }}, backgroundColor: '#2563eb'}]
+        },
+        options: {responsive: true}
+    });
+
+    new Chart(document.getElementById('categoryPie'), {
+        type: 'pie',
+        data: {
+            labels: {{ category_labels|safe }},
+            datasets: [{data: {{ category_data|safe }}, backgroundColor: ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#ef4444']}]
+        },
+        options: {responsive: true}
+    });
+
+    new Chart(document.getElementById('dailyLine'), {
+        type: 'line',
+        data: {
+            labels: {{ daily_labels|safe }},
+            datasets: [{label: 'Total diario', data: {{ daily_data|safe }}, borderColor: '#14b8a6'}]
+        },
+        options: {responsive: true}
+    });
+</script>
+{% endblock %}
