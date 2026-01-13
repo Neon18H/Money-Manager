@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Ingreso{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm p-4">
+    <h5 class="mb-3">{{ page_title }}</h5>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Fecha</label>
+                {{ form.date }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Monto</label>
+                {{ form.amount }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Categoría</label>
+                {{ form.category }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Descripción</label>
+                {{ form.description }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Método de pago</label>
+                {{ form.payment_method }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Fuente</label>
+                {{ form.source }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Notas</label>
+                {{ form.notes }}
+            </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Guardar</button>
+            <a class="btn btn-outline-secondary" href="{% url 'finance:income-list' %}">Volver</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

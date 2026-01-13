@@ -1,0 +1,12 @@
+{% if delta.value %}
+    <div class="mt-2">
+        <span class="badge {% if delta.direction == 'up' %}bg-success{% else %}bg-danger{% endif %}">
+            {% if delta.direction == 'up' %}↑{% else %}↓{% endif %} {{ delta.value|floatformat:1 }}%
+        </span>
+        <small class="text-muted">vs mes anterior</small>
+    </div>
+{% else %}
+    <div class="mt-2">
+        <span class="badge bg-secondary">Sin histórico</span>
+    </div>
+{% endif %}

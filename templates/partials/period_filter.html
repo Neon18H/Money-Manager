@@ -1,0 +1,21 @@
+<form method="get" class="row g-2 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label">Año</label>
+        <select name="year" class="form-select">
+            {% for value in years %}
+                <option value="{{ value }}" {% if value == year %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Mes</label>
+        <select name="month" class="form-select">
+            {% for value, label in months %}
+                <option value="{{ value }}" {% if value == month %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary w-100" type="submit">Actualizar</button>
+    </div>
+</form>

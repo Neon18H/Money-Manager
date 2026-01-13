@@ -1,87 +1,46 @@
-# FinanceHub (Money-Manager)
+# Money Manager
 
-Plataforma web en **Django 5.x** para control financiero personal con módulos de ingresos, gastos fijos, gastos variables y ahorros. Incluye dashboards con KPIs y gráficos (Chart.js), autenticación y filtros por mes/año.
-
-## Estructura
-
-```
-financehub/
-├─ accounts/
-├─ config/
-├─ dashboards/
-├─ transactions/
-├─ templates/
-├─ static/
-├─ manage.py
-└─ financehub/
-```
+Plataforma web en **Django** para control financiero personal con módulos de ingresos, gastos fijos, gastos variables y ahorros. Incluye dashboards con KPIs y gráficos (Chart.js), autenticación con Django y filtros por mes/año.
 
 ## Requisitos
 
 - Python 3.11+
-- PostgreSQL (producción) o SQLite (desarrollo)
+- SQLite (por defecto en Django)
 
 ## Instalación rápida
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-## Configuración
-
-### Desarrollo (SQLite por defecto)
-No requiere variables adicionales.
-
-### Producción (PostgreSQL vía variables de entorno)
-
-```bash
-export POSTGRES_DB=financehub
-export POSTGRES_USER=financehub
-export POSTGRES_PASSWORD=secret
-export POSTGRES_HOST=localhost
-export POSTGRES_PORT=5432
-export DJANGO_SECRET_KEY=change-me
-export DJANGO_DEBUG=False
-export DJANGO_ALLOWED_HOSTS=your-domain.com
+pip install django
 ```
 
 ## Ejecutar
 
 ```bash
-cd financehub
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
 
-## Crear datos demo
-
-```bash
-python manage.py seed_demo
-```
-
-Usuario demo: `demo` / `demo1234`.
-
 ## Rutas principales
 
-- `/` → redirige a `/dashboards/general/`
-- `/dashboards/general/`
-- `/dashboards/incomes/`
-- `/dashboards/fixed-expenses/`
-- `/dashboards/variable-expenses/`
-- `/dashboards/savings/`
+- `/` → Dashboard general
+- `/dashboard/ingresos/`
+- `/dashboard/gastos-fijos/`
+- `/dashboard/gastos-variables/`
+- `/dashboard/ahorros/`
 
 CRUD:
 
-- `/incomes/`
-- `/fixed-expenses/`
-- `/variable-expenses/`
-- `/savings/`
+- `/ingresos/`
+- `/gastos-fijos/`
+- `/gastos-variables/`
+- `/ahorros/`
 
 ## Notas
 
 - Todas las vistas requieren login.
 - Cada usuario solo ve sus datos.
 - Las categorías y medios de pago se gestionan en el admin de Django.
+- Usa Bootstrap 5 y Chart.js vía CDN.

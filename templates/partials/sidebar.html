@@ -1,0 +1,43 @@
+<div class="text-white mb-4">
+    <h4 class="fw-bold">Money Manager</h4>
+    <small class="text-white-50">Control financiero personal</small>
+</div>
+<ul class="nav nav-pills flex-column gap-2">
+    <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard-general' %}active{% endif %}" href="{% url 'finance:dashboard-general' %}">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard General
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if 'income' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'finance:dashboard-income' %}">
+            <i class="bi bi-cash-coin me-2"></i>Ingresos
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if 'fixed' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'finance:dashboard-fixed' %}">
+            <i class="bi bi-receipt me-2"></i>Gastos Fijos
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if 'variable' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'finance:dashboard-variable' %}">
+            <i class="bi bi-wallet2 me-2"></i>Gastos Variables
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if 'saving' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'finance:dashboard-saving' %}">
+            <i class="bi bi-piggy-bank me-2"></i>Ahorros
+        </a>
+    </li>
+    <li class="nav-item mt-3">
+        <a class="nav-link" href="{% url 'finance:income-list' %}">Ingresos (CRUD)</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'finance:fixed-expense-list' %}">Gastos fijos (CRUD)</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'finance:variable-expense-list' %}">Gastos variables (CRUD)</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'finance:saving-list' %}">Ahorros (CRUD)</a>
+    </li>
+</ul>

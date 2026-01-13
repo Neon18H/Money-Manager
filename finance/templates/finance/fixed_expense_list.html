@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Gastos fijos{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h4 class="mb-0">Gastos fijos</h4>
+        <p class="text-muted mb-0">Listado y control de gastos fijos.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'finance:fixed-expense-create' %}">Nuevo gasto fijo</a>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+    <div class="col-md-4">
+        <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ query }}">
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" type="submit">Buscar</button>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Monto</th>
+                    <th>Pagado</th>
+                    <th>Vence</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in object_list %}
+                    <tr>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.category.name }}</td>
+                        <td class="text-end">S/ {{ item.amount }}</td>
+                        <td>
+                            {% if item.is_paid %}
+                                <span class="badge bg-success">Sí</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if item.due_day %}{{ item.due_day }}{% else %}-{% endif %}</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:fixed-expense-update' item.pk %}">Editar</a>
+                            <a class="btn btn-sm btn-outline-danger" href="{% url 'finance:fixed-expense-delete' item.pk %}">Eliminar</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">Sin gastos fijos registrados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    {% include "partials/pagination.html" %}
+</div>
+{% endblock %}
