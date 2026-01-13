@@ -3,7 +3,6 @@ import datetime
 from decimal import Decimal
 
 from django.db.models import Sum
-from django.db.models.functions import TruncDate, TruncMonth
 from django.utils import timezone
 
 from finance.models import FixedExpense, Income, Saving, VariableExpense
@@ -82,13 +81,20 @@ def get_last_12_months_series(user, model):
         month = current.month % 12 + 1
         current = current.replace(year=year, month=month)
 
-    totals = (
-        model.objects.filter(user=user, date__gte=months[0])
-        .annotate(month=TruncMonth("date"))
-        .values("month")
-        .annotate(total=Sum("amount"))
-    )
-    totals_map = {_coerce_date(item["month"]): item["total"] for item in totals}
+    totals_map = {}
+    for month_start in months:
+        month_end = datetime.date(
+            month_start.year,
+            month_start.month,
+            calendar.monthrange(month_start.year, month_start.month)[1],
+        )
+        total = (
+            model.objects.filter(user=user, date__range=(month_start, month_end)).aggregate(total=Sum("amount"))[
+                "total"
+            ]
+            or Decimal("0")
+        )
+        totals_map[month_start] = total
 
     labels = [month.isoformat() for month in months]
     data = [float(totals_map.get(month, 0) or 0) for month in months]
@@ -112,12 +118,11 @@ def get_daily_series(user, model, year: int, month: int):
     start, end = _month_range(year, month)
     data = (
         model.objects.filter(user=user, date__range=(start, end))
-        .annotate(day=TruncDate("date"))
-        .values("day")
+        .values("date")
         .annotate(total=Sum("amount"))
-        .order_by("day")
+        .order_by("date")
     )
-    totals_map = {_coerce_date(item["day"]): item["total"] for item in data}
+    totals_map = {_coerce_date(item["date"]): item["total"] for item in data}
     last_day = calendar.monthrange(year, month)[1]
     labels = []
     values = []
