@@ -18,5 +18,5 @@
 <td>{{ item.category.name }}</td>
 <td><span class="badge badge-outline">{{ item.get_saving_type_display }}</span></td>
 <td>${{ item.amount }}</td>
-<td>{{ item.goal_name|default:"-" }}</td>
+<td>{{ item.goal.name|default:item.goal_name|default:"-" }}</td>
 {% endblock %}

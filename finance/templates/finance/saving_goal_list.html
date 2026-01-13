@@ -1,0 +1,24 @@
+{% extends "finance/list_base.html" %}
+
+{% block header %}Metas de ahorro{% endblock %}
+
+{% block table_header %}
+<th>Meta</th>
+<th>Objetivo</th>
+<th>Estado</th>
+<th>Creación</th>
+<th></th>
+{% endblock %}
+
+{% block table_row %}
+<td>{{ item.name }}</td>
+<td>${{ item.target_amount }}</td>
+<td>
+    {% if item.is_active %}
+        <span class="badge badge-soft">Activa</span>
+    {% else %}
+        <span class="badge badge-outline">Inactiva</span>
+    {% endif %}
+</td>
+<td>{{ item.created_at|date:"Y-m-d" }}</td>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block header %}Dashboard Ahorros{% endblock %}
+
+{% block content %}
+<div class="card p-4 mb-4">
+    <form class="row g-3 align-items-end" method="get">
+        <div class="col-md-3">
+            <label class="form-label">Año</label>
+            <input type="number" name="year" class="form-control" value="{{ year }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Mes</label>
+            <select name="month" class="form-select">
+                {% for m in months %}
+                    <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+        </div>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-3">
+            <div class="text-muted">Ahorro total del mes</div>
+            <div class="h4 mb-1">${{ total_month }}</div>
+            <span class="badge badge-soft">{{ month_name }} {{ year }}</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <div class="text-muted">Ahorro total del año</div>
+            <div class="h4 mb-1">${{ total_year }}</div>
+            <span class="badge badge-outline">Ene–Dic {{ year }}</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <div class="text-muted">% ahorro sobre ingresos (mes)</div>
+            <div class="h4 mb-1">{{ saving_pct|floatformat:1 }}%</div>
+            <span class="badge badge-outline">Salud financiera</span>
+        </div>
+    </div>
+</div>
+
+<div class="card p-4 mb-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-2 mb-3">
+        <div>
+            <h6 class="mb-1">Metas de ahorro</h6>
+            <p class="text-muted mb-0">Haz seguimiento a tus objetivos activos.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" href="{% url 'saving_goal_create' %}">
+                <i class="bi bi-flag me-1"></i> Crear meta
+            </a>
+            <a class="btn btn-primary" href="{% url 'saving_create' %}">
+                <i class="bi bi-plus-circle me-1"></i> Registrar aporte
+            </a>
+        </div>
+    </div>
+    <div class="row g-3">
+        {% for item in goals_progress %}
+            <div class="col-md-6 col-xl-4">
+                <div class="card border h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1">{{ item.goal.name }}</h6>
+                                <span class="badge {% if item.status == 'Completada' %}badge-soft{% else %}badge-outline{% endif %}">
+                                    {{ item.status }}
+                                </span>
+                            </div>
+                            <a class="btn btn-sm btn-outline-primary" href="{% url 'saving_create' %}?goal={{ item.goal.id }}">
+                                Aportar
+                            </a>
+                        </div>
+                        <div class="progress mb-2" role="progressbar" aria-valuenow="{{ item.progress_pct }}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar bg-success" style="width: {{ item.progress_pct|floatformat:0 }}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>${{ item.total_saved }} / ${{ item.goal.target_amount }}</span>
+                            <span>{{ item.progress_pct|floatformat:0 }}%</span>
+                        </div>
+                        <div class="text-muted small mt-1">Faltante: ${{ item.remaining }}</div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-flag"></i>
+                    <h6 class="mt-2">Sin metas activas</h6>
+                    <p class="mb-3">Crea una meta para ver el progreso de tus ahorros.</p>
+                    <a class="btn btn-primary" href="{% url 'saving_goal_create' %}">Crear meta</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Aportes mensuales ({{ year }})</h6>
+                <span class="badge badge-outline">Ene–Dic</span>
+            </div>
+            <canvas id="savingBar"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Distribución de ahorros</h6>
+                <span class="badge badge-outline">{{ year }}</span>
+            </div>
+            <canvas id="savingDonut"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const savingsDistribution = {{ saving_distribution|safe }};
+    const monthlySeries = {{ monthly_series|safe }};
+    const monthLabels = {{ month_labels|safe }};
+
+    new Chart(document.getElementById('savingBar'), {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{label: 'Aportes', data: monthlySeries.data, backgroundColor: '#10b981'}]
+        },
+        options: {responsive: true, plugins: {legend: {display: false}}}
+    });
+
+    new Chart(document.getElementById('savingDonut'), {
+        type: 'doughnut',
+        data: {
+            labels: savingsDistribution.labels,
+            datasets: [{
+                data: savingsDistribution.data,
+                backgroundColor: ['#10b981', '#4f46e5', '#f97316', '#fb7185', '#a855f7', '#38bdf8']
+            }]
+        },
+        options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
+    });
+</script>
+{% endblock %}

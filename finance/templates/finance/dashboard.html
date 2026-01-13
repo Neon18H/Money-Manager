@@ -87,7 +87,7 @@
         <div class="card p-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="mb-0">Ingresos vs Gastos vs Ahorros (12 meses)</h6>
-                <span class="badge badge-outline">Comparativo</span>
+                <span class="badge badge-outline">Año {{ year }}</span>
             </div>
             <canvas id="generalBar"></canvas>
         </div>
@@ -149,11 +149,12 @@
     const expenseSeries = {{ expense_series|safe }};
     const savingSeries = {{ saving_series|safe }};
     const expenseCategories = {{ expense_category_data|safe }};
+    const monthLabels = {{ month_labels|safe }};
 
     new Chart(document.getElementById('generalBar'), {
         type: 'bar',
         data: {
-            labels: incomeSeries.labels,
+            labels: monthLabels,
             datasets: [
                 {label: 'Ingresos', data: incomeSeries.data, backgroundColor: '#4f46e5'},
                 {label: 'Gastos Totales', data: expenseSeries.data, backgroundColor: '#f97316'},

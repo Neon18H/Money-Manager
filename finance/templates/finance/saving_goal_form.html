@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block header %}Metas de ahorro{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h2 class="h4 mb-1">{{ form.instance.pk|yesno:"Editar meta,Nueva meta" }}</h2>
+            <p class="text-muted mb-0">Define objetivos claros para tus ahorros.</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="{% url 'saving_goal_list' %}">Volver</a>
+    </div>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row g-3">
+            {% for field in form %}
+                <div class="col-md-6">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Guardar</button>
+            <a class="btn btn-outline-secondary" href="{% url 'saving_goal_list' %}">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -5,7 +5,7 @@ from decimal import Decimal
 from django.db.models import Sum
 from django.utils import timezone
 
-from finance.models import FixedExpense, Income, Saving, VariableExpense
+from finance.models import FixedExpense, Income, Saving, SavingGoal, VariableExpense
 
 
 def _month_range(year: int, month: int) -> tuple[datetime.date, datetime.date]:
@@ -99,6 +99,57 @@ def get_last_12_months_series(user, model):
     labels = [month.isoformat() for month in months]
     data = [float(totals_map.get(month, 0) or 0) for month in months]
     return {"labels": labels, "data": data}
+
+
+def get_year_12_months_series(model, user, year: int):
+    labels = []
+    data = []
+    for month in range(1, 13):
+        start, end = _month_range(year, month)
+        total = (
+            model.objects.filter(user=user, date__range=(start, end)).aggregate(total=Sum("amount"))["total"]
+            or Decimal("0")
+        )
+        labels.append(f"{year}-{month:02d}")
+        data.append(float(total))
+    return {"labels": labels, "data": data}
+
+
+def get_saving_goal_progress(user):
+    goals = SavingGoal.objects.filter(user=user, is_active=True)
+    progress = []
+    for goal in goals:
+        total_saved = goal.savings.aggregate(total=Sum("amount"))["total"] or Decimal("0")
+        target = goal.target_amount
+        remaining = max(target - total_saved, Decimal("0"))
+        progress_pct = (total_saved / target * Decimal("100")) if target else Decimal("0")
+        progress_pct = min(progress_pct, Decimal("100"))
+        status = "Completada" if target and total_saved >= target else "En progreso"
+        progress.append(
+            {
+                "goal": goal,
+                "total_saved": total_saved,
+                "remaining": remaining,
+                "progress_pct": progress_pct,
+                "status": status,
+            }
+        )
+    return progress
+
+
+def get_saving_distribution(user, year: int):
+    start = datetime.date(year, 1, 1)
+    end = datetime.date(year, 12, 31)
+    savings = Saving.objects.filter(user=user, date__range=(start, end))
+    if SavingGoal.objects.filter(user=user, is_active=True).exists():
+        data = savings.values("goal__name").annotate(total=Sum("amount")).order_by("-total")
+        labels = [item["goal__name"] or "Sin meta" for item in data]
+    else:
+        saving_type_map = dict(Saving.SAVING_TYPE_CHOICES)
+        data = savings.values("saving_type").annotate(total=Sum("amount")).order_by("-total")
+        labels = [saving_type_map.get(item["saving_type"], item["saving_type"]) for item in data]
+    values = [float(item["total"]) for item in data]
+    return {"labels": labels, "data": values}
 
 
 def get_category_breakdown(user, model, year: int, month: int):
