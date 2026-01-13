@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h2 class="h5">¿Seguro que deseas eliminar este registro?</h2>
+        <form method="post">
+            {% csrf_token %}
+            <button class="btn btn-danger" type="submit">Eliminar</button>
+            <a class="btn btn-outline-secondary" href="javascript:history.back()">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

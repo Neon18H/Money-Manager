@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block header %}Dashboard General{% endblock %}
+
+{% block content %}
+<form class="row g-2 align-items-end mb-4" method="get">
+    <div class="col-md-2">
+        <label class="form-label">Año</label>
+        <input type="number" name="year" class="form-control" value="{{ year }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Mes</label>
+        <select name="month" class="form-select">
+            {% for m in months %}
+                <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary" type="submit">Aplicar</button>
+    </div>
+</form>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <div class="text-muted">Ingresos del mes</div>
+            <div class="h4">${{ kpis.income_total }}</div>
+            <small class="text-muted">Variación: {{ kpis.delta_income }} {% if kpis.delta_income > 0 %}↑{% elif kpis.delta_income < 0 %}↓{% endif %}</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <div class="text-muted">Gastos fijos del mes</div>
+            <div class="h4">${{ kpis.fixed_total }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <div class="text-muted">Gastos variables del mes</div>
+            <div class="h4">${{ kpis.variable_total }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <div class="text-muted">Ahorros del mes</div>
+            <div class="h4">${{ kpis.saving_total }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <div class="text-muted">Gastos totales</div>
+            <div class="h4">${{ kpis.expense_total }}</div>
+            <small class="text-muted">Variación: {{ kpis.delta_expenses }} {% if kpis.delta_expenses > 0 %}↑{% elif kpis.delta_expenses < 0 %}↓{% endif %}</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <div class="text-muted">Balance</div>
+            <div class="h4">${{ kpis.balance }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <div class="text-muted">% gasto / ingreso</div>
+            <div class="h4">{{ kpis.expense_pct|floatformat:1 }}%</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <div class="text-muted">% ahorro / ingreso</div>
+            <div class="h4">{{ kpis.saving_pct|floatformat:1 }}%</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card p-3">
+            <h6>Ingresos vs Gastos vs Ahorros (últimos 12 meses)</h6>
+            <canvas id="generalBar"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card p-3">
+            <h6>Distribución de gastos por categoría</h6>
+            <canvas id="generalPie"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h6>Top 10 gastos del mes</h6>
+        <div class="table-responsive">
+            <table class="table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_expenses %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>${{ item.amount }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">Sin gastos registrados.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const incomeSeries = {{ income_series|safe }};
+    const expenseSeries = {{ expense_series|safe }};
+    const savingSeries = {{ saving_series|safe }};
+    const expenseCategories = {{ expense_category_data|safe }};
+
+    new Chart(document.getElementById('generalBar'), {
+        type: 'bar',
+        data: {
+            labels: incomeSeries.labels,
+            datasets: [
+                {label: 'Ingresos', data: incomeSeries.data, backgroundColor: '#1d4ed8'},
+                {label: 'Gastos Totales', data: expenseSeries.data, backgroundColor: '#f97316'},
+                {label: 'Ahorros', data: savingSeries.data, backgroundColor: '#10b981'},
+            ]
+        },
+        options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
+    });
+
+    new Chart(document.getElementById('generalPie'), {
+        type: 'doughnut',
+        data: {
+            labels: expenseCategories.labels,
+            datasets: [{data: expenseCategories.data, backgroundColor: ['#f97316', '#fb7185', '#38bdf8', '#a855f7', '#14b8a6']}]
+        },
+        options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
+    });
+</script>
+{% endblock %}
