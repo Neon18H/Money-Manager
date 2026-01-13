@@ -16,6 +16,12 @@ def _month_range(year: int, month: int) -> tuple[datetime.date, datetime.date]:
     return start, end
 
 
+def _coerce_date(value: datetime.date | datetime.datetime) -> datetime.date:
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    return value
+
+
 def get_month_kpis(user, year: int, month: int) -> dict:
     start, end = _month_range(year, month)
 
@@ -82,9 +88,9 @@ def get_last_12_months_series(user, model):
         .values("month")
         .annotate(total=Sum("amount"))
     )
-    totals_map = {item["month"].date(): item["total"] for item in totals}
+    totals_map = {_coerce_date(item["month"]): item["total"] for item in totals}
 
-    labels = [month.strftime("%b %Y") for month in months]
+    labels = [month.isoformat() for month in months]
     data = [float(totals_map.get(month, 0) or 0) for month in months]
     return {"labels": labels, "data": data}
 
@@ -111,6 +117,12 @@ def get_daily_series(user, model, year: int, month: int):
         .annotate(total=Sum("amount"))
         .order_by("day")
     )
-    labels = [item["day"].strftime("%d/%m") for item in data]
-    values = [float(item["total"]) for item in data]
+    totals_map = {_coerce_date(item["day"]): item["total"] for item in data}
+    last_day = calendar.monthrange(year, month)[1]
+    labels = []
+    values = []
+    for day in range(1, last_day + 1):
+        current_day = datetime.date(year, month, day)
+        labels.append(current_day.isoformat())
+        values.append(float(totals_map.get(current_day, 0) or 0))
     return {"labels": labels, "data": values}
