@@ -119,6 +119,7 @@ class Saving(BaseTransaction):
     ]
 
     saving_type = models.CharField(max_length=20, choices=SAVING_TYPE_CHOICES)
+    goal = models.ForeignKey("SavingGoal", on_delete=models.SET_NULL, null=True, blank=True, related_name="savings")
     goal_name = models.CharField(max_length=150, blank=True)
     goal_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
 
@@ -130,3 +131,26 @@ class Saving(BaseTransaction):
 
     def get_delete_url(self):
         return f"/ahorros/{self.pk}/eliminar/"
+
+
+class SavingGoal(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=150)
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "name"], name="unique_saving_goal_per_user"),
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+
+    def get_update_url(self):
+        return f"/ahorros/metas/{self.pk}/editar/"
+
+    def get_delete_url(self):
+        return f"/ahorros/metas/{self.pk}/eliminar/"

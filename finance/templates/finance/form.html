@@ -27,6 +27,15 @@
             <a class="btn btn-outline-primary btn-sm" href="{{ payment_settings_url }}">Crear métodos</a>
         </div>
     {% endif %}
+    {% if goal_empty %}
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <div>
+                <strong>No tienes metas de ahorro activas.</strong>
+                <span class="text-muted">Crea una para registrar aportes.</span>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ goal_create_url }}">Crea tu primera meta</a>
+        </div>
+    {% endif %}
     <form method="post" novalidate>
         {% csrf_token %}
         {{ form.non_field_errors }}

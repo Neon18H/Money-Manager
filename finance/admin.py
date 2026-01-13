@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from finance.models import Category, FixedExpense, Income, PaymentMethod, Saving, VariableExpense
+from finance.models import Category, FixedExpense, Income, PaymentMethod, Saving, SavingGoal, VariableExpense
 
 
 @admin.register(Category)
@@ -39,6 +39,13 @@ class VariableExpenseAdmin(admin.ModelAdmin):
 
 @admin.register(Saving)
 class SavingAdmin(admin.ModelAdmin):
-    list_display = ("date", "description", "amount", "saving_type", "user")
+    list_display = ("date", "description", "amount", "saving_type", "goal", "user")
     list_filter = ("saving_type", "date")
     search_fields = ("description",)
+
+
+@admin.register(SavingGoal)
+class SavingGoalAdmin(admin.ModelAdmin):
+    list_display = ("name", "target_amount", "is_active", "user", "created_at")
+    list_filter = ("is_active", "created_at")
+    search_fields = ("name",)

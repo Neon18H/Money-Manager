@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
-from finance.models import Category, FixedExpense, Income, PaymentMethod, Saving, VariableExpense
+from finance.models import Category, FixedExpense, Income, PaymentMethod, Saving, SavingGoal, VariableExpense
 
 
 class BootstrapAuthenticationForm(AuthenticationForm):
@@ -101,11 +101,31 @@ class SavingForm(BaseTransactionForm):
         choices=Saving.SAVING_TYPE_CHOICES,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    goal_name = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    goal_amount = forms.DecimalField(
+    goal = forms.ModelChoiceField(
+        queryset=SavingGoal.objects.none(),
         required=False,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        label="Meta",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
+
+    def __init__(self, *args, user=None, **kwargs):
+        kwargs.pop("category_kind", None)
+        super().__init__(*args, user=user, category_kind=Category.KIND_SAVING, **kwargs)
+        if user is not None:
+            self.fields["goal"].queryset = SavingGoal.objects.filter(user=user, is_active=True)
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if instance.goal:
+            instance.goal_name = instance.goal.name
+            instance.goal_amount = instance.goal.target_amount
+        else:
+            instance.goal_name = ""
+            instance.goal_amount = None
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
     class Meta:
         model = Saving
@@ -117,8 +137,7 @@ class SavingForm(BaseTransactionForm):
             "payment_method",
             "notes",
             "saving_type",
-            "goal_name",
-            "goal_amount",
+            "goal",
         ]
 
 
@@ -139,3 +158,13 @@ class PaymentMethodForm(forms.ModelForm):
     class Meta:
         model = PaymentMethod
         fields = ["name", "is_active"]
+
+
+class SavingGoalForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control"}))
+    target_amount = forms.DecimalField(widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}))
+    is_active = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={"class": "form-check-input"}))
+
+    class Meta:
+        model = SavingGoal
+        fields = ["name", "target_amount", "is_active"]

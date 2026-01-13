@@ -18,15 +18,21 @@ from finance.forms import (
     IncomeForm,
     PaymentMethodForm,
     SavingForm,
+    SavingGoalForm,
     VariableExpenseForm,
 )
-from finance.models import Category, FixedExpense, Income, PaymentMethod, Saving, VariableExpense
+from finance.models import Category, FixedExpense, Income, PaymentMethod, Saving, SavingGoal, VariableExpense
 from finance.services import (
     get_category_breakdown,
     get_daily_series,
     get_last_12_months_series,
     get_month_kpis,
+    get_saving_distribution,
+    get_saving_goal_progress,
+    get_year_12_months_series,
 )
+
+MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 
 
 class UserQuerySetMixin:
@@ -58,6 +64,9 @@ class UserFormMixin:
         if form and "payment_method" in form.fields:
             context["payment_method_empty"] = not form.fields["payment_method"].queryset.exists()
             context["payment_settings_url"] = reverse_lazy("settings_payment_methods")
+        if form and "goal" in form.fields:
+            context["goal_empty"] = not form.fields["goal"].queryset.exists()
+            context["goal_create_url"] = reverse_lazy("saving_goal_create")
         return context
 
 
@@ -195,7 +204,9 @@ class SavingListView(LoginRequiredMixin, UserQuerySetMixin, ListView):
         queryset = super().get_queryset()
         query = self.request.GET.get("q")
         if query:
-            queryset = queryset.filter(Q(description__icontains=query) | Q(goal_name__icontains=query))
+            queryset = queryset.filter(
+                Q(description__icontains=query) | Q(goal_name__icontains=query) | Q(goal__name__icontains=query)
+            )
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -210,6 +221,13 @@ class SavingCreateView(LoginRequiredMixin, UserFormMixin, CreateView):
     template_name = "finance/form.html"
     success_url = reverse_lazy("saving_list")
     category_kind = Category.KIND_SAVING
+
+    def get_initial(self):
+        initial = super().get_initial()
+        goal_id = self.request.GET.get("goal")
+        if goal_id:
+            initial["goal"] = goal_id
+        return initial
 
 
 class SavingUpdateView(LoginRequiredMixin, UserFormMixin, UserQuerySetMixin, UpdateView):
@@ -233,10 +251,10 @@ def dashboard(request):
 
     kpis = get_month_kpis(request.user, year, month)
 
-    income_series = get_last_12_months_series(request.user, Income)
-    fixed_series = get_last_12_months_series(request.user, FixedExpense)
-    variable_series = get_last_12_months_series(request.user, VariableExpense)
-    saving_series = get_last_12_months_series(request.user, Saving)
+    income_series = get_year_12_months_series(Income, request.user, year)
+    fixed_series = get_year_12_months_series(FixedExpense, request.user, year)
+    variable_series = get_year_12_months_series(VariableExpense, request.user, year)
+    saving_series = get_year_12_months_series(Saving, request.user, year)
     expense_series = {
         "labels": income_series["labels"],
         "data": [
@@ -261,6 +279,7 @@ def dashboard(request):
         "income_series": json.dumps(income_series),
         "expense_series": json.dumps(expense_series),
         "saving_series": json.dumps(saving_series),
+        "month_labels": json.dumps(MONTH_LABELS),
         "expense_category_data": json.dumps(expense_category_data),
         "top_expenses": top_expenses,
     }
@@ -284,7 +303,52 @@ def variable_expense_dashboard(request):
 
 @login_required
 def saving_dashboard(request):
-    return _module_dashboard(request, Saving, "saving")
+    today = timezone.localdate()
+    year = int(request.GET.get("year", today.year))
+    month = int(request.GET.get("month", today.month))
+    start_month = datetime.date(year, month, 1)
+    end_month = datetime.date(year, month, calendar.monthrange(year, month)[1])
+    start_year = datetime.date(year, 1, 1)
+    end_year = datetime.date(year, 12, 31)
+
+    total_month = (
+        Saving.objects.filter(user=request.user, date__range=(start_month, end_month)).aggregate(total=Sum("amount"))[
+            "total"
+        ]
+        or Decimal("0")
+    )
+    total_year = (
+        Saving.objects.filter(user=request.user, date__range=(start_year, end_year)).aggregate(total=Sum("amount"))[
+            "total"
+        ]
+        or Decimal("0")
+    )
+    income_month = (
+        Income.objects.filter(user=request.user, date__range=(start_month, end_month)).aggregate(total=Sum("amount"))[
+            "total"
+        ]
+        or Decimal("0")
+    )
+    saving_pct = (total_month / income_month * Decimal("100")) if income_month else Decimal("0")
+
+    goals_progress = get_saving_goal_progress(request.user)
+    savings_distribution = get_saving_distribution(request.user, year)
+    monthly_series = get_year_12_months_series(Saving, request.user, year)
+
+    context = {
+        "year": year,
+        "month": month,
+        "month_name": calendar.month_name[month],
+        "months": range(1, 13),
+        "total_month": total_month,
+        "total_year": total_year,
+        "saving_pct": saving_pct,
+        "goals_progress": goals_progress,
+        "saving_distribution": json.dumps(savings_distribution),
+        "monthly_series": json.dumps(monthly_series),
+        "month_labels": json.dumps(MONTH_LABELS),
+    }
+    return render(request, "finance/saving_dashboard.html", context)
 
 
 @login_required
@@ -372,6 +436,45 @@ class PaymentMethodUpdateView(LoginRequiredMixin, UserQuerySetMixin, UpdateView)
 class PaymentMethodDeleteView(BaseDeleteView):
     model = PaymentMethod
     success_url = reverse_lazy("settings_payment_methods")
+
+
+class SavingGoalListView(LoginRequiredMixin, UserQuerySetMixin, ListView):
+    model = SavingGoal
+    template_name = "finance/saving_goal_list.html"
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"title": "Metas de ahorro", "create_url": reverse_lazy("saving_goal_create")})
+        return context
+
+
+class SavingGoalCreateView(LoginRequiredMixin, CreateView):
+    model = SavingGoal
+    form_class = SavingGoalForm
+    template_name = "finance/saving_goal_form.html"
+    success_url = reverse_lazy("saving_goal_list")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, "Meta creada correctamente.")
+        return super().form_valid(form)
+
+
+class SavingGoalUpdateView(LoginRequiredMixin, UserQuerySetMixin, UpdateView):
+    model = SavingGoal
+    form_class = SavingGoalForm
+    template_name = "finance/saving_goal_form.html"
+    success_url = reverse_lazy("saving_goal_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Meta actualizada correctamente.")
+        return super().form_valid(form)
+
+
+class SavingGoalDeleteView(BaseDeleteView):
+    model = SavingGoal
+    success_url = reverse_lazy("saving_goal_list")
 
 
 def _module_dashboard(request, model, slug):
