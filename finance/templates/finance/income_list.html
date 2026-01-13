@@ -1,0 +1,22 @@
+{% extends "finance/list_base.html" %}
+
+{% block header %}Ingresos{% endblock %}
+
+{% block table_header %}
+<th>Fecha</th>
+<th>Descripción</th>
+<th>Categoría</th>
+<th>Fuente</th>
+<th>Monto</th>
+<th>Método</th>
+<th></th>
+{% endblock %}
+
+{% block table_row %}
+<td>{{ item.date }}</td>
+<td>{{ item.description }}</td>
+<td>{{ item.category.name }}</td>
+<td>{{ item.source }}</td>
+<td>${{ item.amount }}</td>
+<td>{{ item.payment_method.name }}</td>
+{% endblock %}

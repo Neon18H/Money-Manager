@@ -1,0 +1,22 @@
+{% extends "finance/list_base.html" %}
+
+{% block header %}Gastos Fijos{% endblock %}
+
+{% block table_header %}
+<th>Fecha</th>
+<th>Descripción</th>
+<th>Categoría</th>
+<th>Vence día</th>
+<th>Pagado</th>
+<th>Monto</th>
+<th></th>
+{% endblock %}
+
+{% block table_row %}
+<td>{{ item.date }}</td>
+<td>{{ item.description }}</td>
+<td>{{ item.category.name }}</td>
+<td>{{ item.due_day|default:"-" }}</td>
+<td>{% if item.is_paid %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-warning text-dark">No</span>{% endif %}</td>
+<td>${{ item.amount }}</td>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "finance/list_base.html" %}
+
+{% block header %}Gastos Variables{% endblock %}
+
+{% block table_header %}
+<th>Fecha</th>
+<th>Descripción</th>
+<th>Categoría</th>
+<th>Tipo</th>
+<th>Monto</th>
+<th></th>
+{% endblock %}
+
+{% block table_row %}
+<td>{{ item.date }}</td>
+<td>{{ item.description }}</td>
+<td>{{ item.category.name }}</td>
+<td>{{ item.get_expense_type_display }}</td>
+<td>${{ item.amount }}</td>
+{% endblock %}
