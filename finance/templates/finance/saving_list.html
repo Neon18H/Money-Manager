@@ -7,8 +7,8 @@
 <th>Descripción</th>
 <th>Categoría</th>
 <th>Tipo</th>
-<th>Meta</th>
 <th>Monto</th>
+<th>Meta</th>
 <th></th>
 {% endblock %}
 
@@ -16,7 +16,7 @@
 <td>{{ item.date }}</td>
 <td>{{ item.description }}</td>
 <td>{{ item.category.name }}</td>
-<td>{{ item.get_saving_type_display }}</td>
-<td>{{ item.goal_name|default:"-" }}</td>
+<td><span class="badge badge-outline">{{ item.get_saving_type_display }}</span></td>
 <td>${{ item.amount }}</td>
+<td>{{ item.goal_name|default:"-" }}</td>
 {% endblock %}

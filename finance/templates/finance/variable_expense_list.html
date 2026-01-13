@@ -8,6 +8,7 @@
 <th>Categoría</th>
 <th>Tipo</th>
 <th>Monto</th>
+<th>Método</th>
 <th></th>
 {% endblock %}
 
@@ -15,6 +16,7 @@
 <td>{{ item.date }}</td>
 <td>{{ item.description }}</td>
 <td>{{ item.category.name }}</td>
-<td>{{ item.get_expense_type_display }}</td>
+<td><span class="badge badge-outline">{{ item.get_expense_type_display }}</span></td>
 <td>${{ item.amount }}</td>
+<td>{{ item.payment_method.name }}</td>
 {% endblock %}

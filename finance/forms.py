@@ -10,6 +10,10 @@ class BootstrapAuthenticationForm(AuthenticationForm):
         for field in self.fields.values():
             existing_classes = field.widget.attrs.get("class", "")
             field.widget.attrs["class"] = f"{existing_classes} form-control".strip()
+        if "username" in self.fields:
+            self.fields["username"].widget.attrs.setdefault("placeholder", "Tu usuario")
+        if "password" in self.fields:
+            self.fields["password"].widget.attrs.setdefault("placeholder", "Tu contraseña")
 
 
 class BaseTransactionForm(forms.ModelForm):
@@ -29,11 +33,11 @@ class BaseTransactionForm(forms.ModelForm):
     def __init__(self, *args, user=None, category_kind=None, **kwargs):
         super().__init__(*args, **kwargs)
         if user is not None:
-            category_qs = Category.objects.filter(user=user)
+            category_qs = Category.objects.filter(user=user, is_active=True)
             if category_kind:
                 category_qs = category_qs.filter(kind=category_kind)
             self.fields["category"].queryset = category_qs
-            self.fields["payment_method"].queryset = PaymentMethod.objects.filter(user=user)
+            self.fields["payment_method"].queryset = PaymentMethod.objects.filter(user=user, is_active=True)
 
 
 class IncomeForm(BaseTransactionForm):
@@ -116,3 +120,22 @@ class SavingForm(BaseTransactionForm):
             "goal_name",
             "goal_amount",
         ]
+
+
+class CategoryForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control"}))
+    kind = forms.ChoiceField(choices=Category.KIND_CHOICES, widget=forms.Select(attrs={"class": "form-select"}))
+    is_active = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={"class": "form-check-input"}))
+
+    class Meta:
+        model = Category
+        fields = ["name", "kind", "is_active"]
+
+
+class PaymentMethodForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control"}))
+    is_active = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={"class": "form-check-input"}))
+
+    class Meta:
+        model = PaymentMethod
+        fields = ["name", "is_active"]

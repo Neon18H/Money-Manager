@@ -17,6 +17,12 @@
 <td>{{ item.description }}</td>
 <td>{{ item.category.name }}</td>
 <td>{{ item.due_day|default:"-" }}</td>
-<td>{% if item.is_paid %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-warning text-dark">No</span>{% endif %}</td>
+<td>
+    {% if item.is_paid %}
+        <span class="badge badge-soft">Sí</span>
+    {% else %}
+        <span class="badge badge-outline">No</span>
+    {% endif %}
+</td>
 <td>${{ item.amount }}</td>
 {% endblock %}

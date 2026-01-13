@@ -18,10 +18,13 @@ class Category(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     kind = models.CharField(max_length=20, choices=KIND_CHOICES)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
-        unique_together = ("user", "name", "kind")
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "name", "kind"], name="unique_category_per_user_kind"),
+        ]
 
     def __str__(self) -> str:
         return self.name
@@ -30,10 +33,13 @@ class Category(models.Model):
 class PaymentMethod(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
-        unique_together = ("user", "name")
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "name"], name="unique_payment_method_per_user"),
+        ]
 
     def __str__(self) -> str:
         return self.name

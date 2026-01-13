@@ -3,73 +3,81 @@
 {% block header %}Dashboard General{% endblock %}
 
 {% block content %}
-<form class="row g-2 align-items-end mb-4" method="get">
-    <div class="col-md-2">
-        <label class="form-label">Año</label>
-        <input type="number" name="year" class="form-control" value="{{ year }}">
-    </div>
-    <div class="col-md-2">
-        <label class="form-label">Mes</label>
-        <select name="month" class="form-select">
-            {% for m in months %}
-                <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-md-2">
-        <button class="btn btn-primary" type="submit">Aplicar</button>
-    </div>
-</form>
+<div class="card p-4 mb-4">
+    <form class="row g-3 align-items-end" method="get">
+        <div class="col-md-3">
+            <label class="form-label">Año</label>
+            <input type="number" name="year" class="form-control" value="{{ year }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Mes</label>
+            <select name="month" class="form-select">
+                {% for m in months %}
+                    <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+        </div>
+    </form>
+</div>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card card-kpi p-3">
+        <div class="card p-3">
             <div class="text-muted">Ingresos del mes</div>
-            <div class="h4">${{ kpis.income_total }}</div>
+            <div class="h4 mb-1">${{ kpis.income_total }}</div>
             <small class="text-muted">Variación: {{ kpis.delta_income }} {% if kpis.delta_income > 0 %}↑{% elif kpis.delta_income < 0 %}↓{% endif %}</small>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card card-kpi p-3">
-            <div class="text-muted">Gastos fijos del mes</div>
-            <div class="h4">${{ kpis.fixed_total }}</div>
+        <div class="card p-3">
+            <div class="text-muted">Gastos fijos</div>
+            <div class="h4 mb-1">${{ kpis.fixed_total }}</div>
+            <span class="badge badge-outline">Recurrencia controlada</span>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card card-kpi p-3">
-            <div class="text-muted">Gastos variables del mes</div>
-            <div class="h4">${{ kpis.variable_total }}</div>
+        <div class="card p-3">
+            <div class="text-muted">Gastos variables</div>
+            <div class="h4 mb-1">${{ kpis.variable_total }}</div>
+            <span class="badge badge-outline">Flexibilidad</span>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card card-kpi p-3">
+        <div class="card p-3">
             <div class="text-muted">Ahorros del mes</div>
-            <div class="h4">${{ kpis.saving_total }}</div>
+            <div class="h4 mb-1">${{ kpis.saving_total }}</div>
+            <span class="badge badge-soft">Meta activa</span>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card card-kpi p-3">
+        <div class="card p-3">
             <div class="text-muted">Gastos totales</div>
-            <div class="h4">${{ kpis.expense_total }}</div>
+            <div class="h4 mb-1">${{ kpis.expense_total }}</div>
             <small class="text-muted">Variación: {{ kpis.delta_expenses }} {% if kpis.delta_expenses > 0 %}↑{% elif kpis.delta_expenses < 0 %}↓{% endif %}</small>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card card-kpi p-3">
+        <div class="card p-3">
             <div class="text-muted">Balance</div>
-            <div class="h4">${{ kpis.balance }}</div>
+            <div class="h4 mb-1">${{ kpis.balance }}</div>
+            <span class="badge badge-outline">Resultado neto</span>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card card-kpi p-3">
+        <div class="card p-3">
             <div class="text-muted">% gasto / ingreso</div>
-            <div class="h4">{{ kpis.expense_pct|floatformat:1 }}%</div>
+            <div class="h4 mb-1">{{ kpis.expense_pct|floatformat:1 }}%</div>
+            <span class="badge badge-outline">Control</span>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card card-kpi p-3">
+        <div class="card p-3">
             <div class="text-muted">% ahorro / ingreso</div>
-            <div class="h4">{{ kpis.saving_pct|floatformat:1 }}%</div>
+            <div class="h4 mb-1">{{ kpis.saving_pct|floatformat:1 }}%</div>
+            <span class="badge badge-soft">Proyección</span>
         </div>
     </div>
 </div>
@@ -77,13 +85,19 @@
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="card p-3">
-            <h6>Ingresos vs Gastos vs Ahorros (últimos 12 meses)</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Ingresos vs Gastos vs Ahorros (12 meses)</h6>
+                <span class="badge badge-outline">Comparativo</span>
+            </div>
             <canvas id="generalBar"></canvas>
         </div>
     </div>
     <div class="col-lg-4">
         <div class="card p-3">
-            <h6>Distribución de gastos por categoría</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Distribución de gastos por categoría</h6>
+                <span class="badge badge-outline">Mes {{ month }}</span>
+            </div>
             <canvas id="generalPie"></canvas>
         </div>
     </div>
@@ -91,7 +105,10 @@
 
 <div class="card mt-4">
     <div class="card-body">
-        <h6>Top 10 gastos del mes</h6>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Top 10 gastos del mes</h6>
+            <span class="badge badge-outline">{{ month_name }} {{ year }}</span>
+        </div>
         <div class="table-responsive">
             <table class="table">
                 <thead class="table-light">
@@ -110,7 +127,13 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center text-muted">Sin gastos registrados.</td>
+                            <td colspan="3">
+                                <div class="empty-state">
+                                    <i class="bi bi-clipboard-data"></i>
+                                    <h6 class="mt-2">Sin gastos registrados</h6>
+                                    <p>Agrega movimientos para ver los insights.</p>
+                                </div>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -132,7 +155,7 @@
         data: {
             labels: incomeSeries.labels,
             datasets: [
-                {label: 'Ingresos', data: incomeSeries.data, backgroundColor: '#1d4ed8'},
+                {label: 'Ingresos', data: incomeSeries.data, backgroundColor: '#4f46e5'},
                 {label: 'Gastos Totales', data: expenseSeries.data, backgroundColor: '#f97316'},
                 {label: 'Ahorros', data: savingSeries.data, backgroundColor: '#10b981'},
             ]
@@ -144,7 +167,10 @@
         type: 'doughnut',
         data: {
             labels: expenseCategories.labels,
-            datasets: [{data: expenseCategories.data, backgroundColor: ['#f97316', '#fb7185', '#38bdf8', '#a855f7', '#14b8a6']}]
+            datasets: [{
+                data: expenseCategories.data,
+                backgroundColor: ['#f97316', '#fb7185', '#38bdf8', '#a855f7', '#14b8a6']
+            }]
         },
         options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
     });
