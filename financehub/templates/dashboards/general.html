@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard General{% endblock %}
+{% block page_title %}Dashboard General{% endblock %}
+{% block content %}
+<form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-3">
+        <label class="form-label">Año</label>
+        <select name="year" class="form-select">
+            {% for item in years %}
+                <option value="{{ item }}" {% if item == year %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Mes</label>
+        <select name="month" class="form-select">
+            {% for value,label in month_options %}
+                <option value="{{ value }}" {% if value == month %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary">Filtrar</button>
+    </div>
+</form>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <h6>Ingresos del mes</h6>
+            <h3>${{ totals.income|floatformat:2 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <h6>Gastos fijos</h6>
+            <h3>${{ totals.fixed|floatformat:2 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <h6>Gastos variables</h6>
+            <h3>${{ totals.variable|floatformat:2 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-kpi p-3">
+            <h6>Ahorros</h6>
+            <h3>${{ totals.saving|floatformat:2 }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-3">
+    <div class="col-md-4">
+        <div class="card card-kpi p-3">
+            <h6>Balance del mes</h6>
+            <h3>${{ balance|floatformat:2 }}</h3>
+            <span class="text-muted">Delta vs mes anterior: {{ balance_delta|floatformat:2 }}
+                {% if balance_delta_positive %}⬆️{% else %}⬇️{% endif %}</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-kpi p-3">
+            <h6>% gasto sobre ingreso</h6>
+            <h3>{{ percent_expense|floatformat:2 }}%</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-kpi p-3">
+            <h6>% ahorro sobre ingreso</h6>
+            <h3>{{ percent_saving|floatformat:2 }}%</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-4">
+    <div class="col-lg-8">
+        <div class="card p-3">
+            <h6>Ingresos vs Gastos vs Ahorro (12 meses)</h6>
+            <canvas id="generalSeries"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card p-3">
+            <h6>Distribución de gastos por categoría</h6>
+            <canvas id="expensePie"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-4">
+    <div class="col-lg-12">
+        <div class="card p-3">
+            <h6>Top 10 gastos del mes</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Tipo</th>
+                            <th>Fecha</th>
+                            <th class="text-end">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in top_expenses %}
+                            <tr>
+                                <td>{{ item.description }}</td>
+                                <td>{{ item.kind }}</td>
+                                <td>{{ item.date }}</td>
+                                <td class="text-end">${{ item.amount|floatformat:2 }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">Sin gastos en este periodo.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const generalCtx = document.getElementById('generalSeries');
+    new Chart(generalCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ series_labels|safe }},
+            datasets: [
+                {label: 'Ingresos', data: {{ income_series|safe }}, backgroundColor: '#22c55e'},
+                {label: 'Gastos fijos', data: {{ fixed_series|safe }}, backgroundColor: '#ef4444'},
+                {label: 'Gastos variables', data: {{ variable_series|safe }}, backgroundColor: '#f97316'},
+                {label: 'Ahorros', data: {{ saving_series|safe }}, backgroundColor: '#3b82f6'},
+            ]
+        },
+        options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
+    });
+
+    const expenseCtx = document.getElementById('expensePie');
+    new Chart(expenseCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ expense_breakdown_labels|safe }},
+            datasets: [{data: {{ expense_breakdown_data|safe }}, backgroundColor: ['#ef4444', '#f97316', '#facc15', '#a855f7', '#22c55e']}]
+        },
+        options: {responsive: true}
+    });
+</script>
+{% endblock %}
