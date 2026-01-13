@@ -19,11 +19,11 @@
                         {{ form.non_field_errors }}
                         <div class="mb-3">
                             <label class="form-label">Usuario</label>
-                            {{ form.username.as_widget(attrs={"class": "form-control"}) }}
+                            {{ form.username }}
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Contraseña</label>
-                            {{ form.password.as_widget(attrs={"class": "form-control"}) }}
+                            {{ form.password }}
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Ingresar</button>
                     </form>

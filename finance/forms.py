@@ -1,6 +1,15 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 
 from finance.models import Category, FixedExpense, Income, PaymentMethod, Saving, VariableExpense
+
+
+class BootstrapAuthenticationForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            existing_classes = field.widget.attrs.get("class", "")
+            field.widget.attrs["class"] = f"{existing_classes} form-control".strip()
 
 
 class BaseTransactionForm(forms.ModelForm):
