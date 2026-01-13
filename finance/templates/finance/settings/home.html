@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block header %}Configuración{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="mb-1">Categorías</h5>
+                    <p class="text-muted mb-0">Organiza ingresos, gastos y ahorros.</p>
+                </div>
+                <span class="badge badge-soft">{{ category_count }} totales</span>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <a class="btn btn-primary" href="{% url 'settings_categories' %}">Gestionar categorías</a>
+                <a class="btn btn-outline-secondary" href="{% url 'settings_category_create' %}">Nueva categoría</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="mb-1">Métodos de pago</h5>
+                    <p class="text-muted mb-0">Define cómo registras tus movimientos.</p>
+                </div>
+                <span class="badge badge-soft">{{ payment_method_count }} totales</span>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <a class="btn btn-primary" href="{% url 'settings_payment_methods' %}">Gestionar métodos</a>
+                <a class="btn btn-outline-secondary" href="{% url 'settings_payment_method_create' %}">Nuevo método</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

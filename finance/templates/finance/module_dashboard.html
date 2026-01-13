@@ -3,29 +3,32 @@
 {% block header %}Dashboard {{ slug|title }}{% endblock %}
 
 {% block content %}
-<form class="row g-2 align-items-end mb-4" method="get">
-    <div class="col-md-2">
-        <label class="form-label">Año</label>
-        <input type="number" name="year" class="form-control" value="{{ year }}">
-    </div>
-    <div class="col-md-2">
-        <label class="form-label">Mes</label>
-        <select name="month" class="form-select">
-            {% for m in months %}
-                <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-md-2">
-        <button class="btn btn-primary" type="submit">Aplicar</button>
-    </div>
-</form>
+<div class="card p-4 mb-4">
+    <form class="row g-3 align-items-end" method="get">
+        <div class="col-md-3">
+            <label class="form-label">Año</label>
+            <input type="number" name="year" class="form-control" value="{{ year }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Mes</label>
+            <select name="month" class="form-select">
+                {% for m in months %}
+                    <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+        </div>
+    </form>
+</div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card card-kpi p-3">
+    <div class="col-md-4">
+        <div class="card p-3">
             <div class="text-muted">Total del mes</div>
-            <div class="h4">${{ total_month }}</div>
+            <div class="h4 mb-1">${{ total_month }}</div>
+            <span class="badge badge-soft">{{ month_name }} {{ year }}</span>
         </div>
     </div>
 </div>
@@ -33,20 +36,29 @@
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="card p-3">
-            <h6>Totales últimos 12 meses</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Totales últimos 12 meses</h6>
+                <span class="badge badge-outline">Histórico</span>
+            </div>
             <canvas id="moduleBar"></canvas>
         </div>
     </div>
     <div class="col-lg-4">
         <div class="card p-3">
-            <h6>Distribución por categoría</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Distribución por categoría</h6>
+                <span class="badge badge-outline">Mes {{ month }}</span>
+            </div>
             <canvas id="modulePie"></canvas>
         </div>
     </div>
 </div>
 
 <div class="card mt-4 p-3">
-    <h6>Evolución diaria del mes</h6>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">Evolución diaria del mes</h6>
+        <span class="badge badge-outline">{{ month_name }}</span>
+    </div>
     <canvas id="moduleLine"></canvas>
 </div>
 {% endblock %}
@@ -61,7 +73,7 @@
         type: 'bar',
         data: {
             labels: last12.labels,
-            datasets: [{label: 'Total', data: last12.data, backgroundColor: '#6366f1'}]
+            datasets: [{label: 'Total', data: last12.data, backgroundColor: '#4f46e5'}]
         },
         options: {responsive: true, plugins: {legend: {display: false}}}
     });
@@ -70,7 +82,10 @@
         type: 'doughnut',
         data: {
             labels: categoryData.labels,
-            datasets: [{data: categoryData.data, backgroundColor: ['#6366f1', '#14b8a6', '#f97316', '#fb7185', '#a855f7']}]
+            datasets: [{
+                data: categoryData.data,
+                backgroundColor: ['#4f46e5', '#14b8a6', '#f97316', '#fb7185', '#a855f7']
+            }]
         },
         options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
     });
@@ -79,7 +94,14 @@
         type: 'line',
         data: {
             labels: dailySeries.labels,
-            datasets: [{label: 'Total diario', data: dailySeries.data, borderColor: '#1d4ed8', backgroundColor: 'rgba(29,78,216,0.15)'}]
+            datasets: [{
+                label: 'Total diario',
+                data: dailySeries.data,
+                borderColor: '#1d4ed8',
+                backgroundColor: 'rgba(79,70,229,0.15)',
+                tension: 0.3,
+                fill: true
+            }]
         },
         options: {responsive: true}
     });

@@ -12,8 +12,15 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
-from finance.forms import FixedExpenseForm, IncomeForm, SavingForm, VariableExpenseForm
-from finance.models import Category, FixedExpense, Income, Saving, VariableExpense
+from finance.forms import (
+    CategoryForm,
+    FixedExpenseForm,
+    IncomeForm,
+    PaymentMethodForm,
+    SavingForm,
+    VariableExpenseForm,
+)
+from finance.models import Category, FixedExpense, Income, PaymentMethod, Saving, VariableExpense
 from finance.services import (
     get_category_breakdown,
     get_daily_series,
@@ -44,6 +51,13 @@ class UserFormMixin:
         context = super().get_context_data(**kwargs)
         action = "Editar" if getattr(self, "object", None) else "Nuevo"
         context["form_title"] = f"{action} {self.model._meta.verbose_name.title()}"
+        form = context.get("form")
+        if form and "category" in form.fields:
+            context["category_empty"] = not form.fields["category"].queryset.exists()
+            context["category_settings_url"] = reverse_lazy("settings_categories")
+        if form and "payment_method" in form.fields:
+            context["payment_method_empty"] = not form.fields["payment_method"].queryset.exists()
+            context["payment_settings_url"] = reverse_lazy("settings_payment_methods")
         return context
 
 
@@ -271,6 +285,93 @@ def variable_expense_dashboard(request):
 @login_required
 def saving_dashboard(request):
     return _module_dashboard(request, Saving, "saving")
+
+
+@login_required
+def settings_home(request):
+    context = {
+        "category_count": Category.objects.filter(user=request.user).count(),
+        "payment_method_count": PaymentMethod.objects.filter(user=request.user).count(),
+    }
+    return render(request, "finance/settings/home.html", context)
+
+
+class CategoryListView(LoginRequiredMixin, UserQuerySetMixin, ListView):
+    model = Category
+    template_name = "finance/settings/category_list.html"
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"title": "Categorías", "create_url": reverse_lazy("settings_category_create")})
+        return context
+
+
+class CategoryCreateView(LoginRequiredMixin, CreateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = "finance/settings/category_form.html"
+    success_url = reverse_lazy("settings_categories")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, "Categoría guardada correctamente.")
+        return super().form_valid(form)
+
+
+class CategoryUpdateView(LoginRequiredMixin, UserQuerySetMixin, UpdateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = "finance/settings/category_form.html"
+    success_url = reverse_lazy("settings_categories")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Categoría actualizada correctamente.")
+        return super().form_valid(form)
+
+
+class CategoryDeleteView(BaseDeleteView):
+    model = Category
+    success_url = reverse_lazy("settings_categories")
+
+
+class PaymentMethodListView(LoginRequiredMixin, UserQuerySetMixin, ListView):
+    model = PaymentMethod
+    template_name = "finance/settings/payment_method_list.html"
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"title": "Métodos de pago", "create_url": reverse_lazy("settings_payment_method_create")})
+        return context
+
+
+class PaymentMethodCreateView(LoginRequiredMixin, CreateView):
+    model = PaymentMethod
+    form_class = PaymentMethodForm
+    template_name = "finance/settings/payment_method_form.html"
+    success_url = reverse_lazy("settings_payment_methods")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, "Método de pago guardado correctamente.")
+        return super().form_valid(form)
+
+
+class PaymentMethodUpdateView(LoginRequiredMixin, UserQuerySetMixin, UpdateView):
+    model = PaymentMethod
+    form_class = PaymentMethodForm
+    template_name = "finance/settings/payment_method_form.html"
+    success_url = reverse_lazy("settings_payment_methods")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Método de pago actualizado correctamente.")
+        return super().form_valid(form)
+
+
+class PaymentMethodDeleteView(BaseDeleteView):
+    model = PaymentMethod
+    success_url = reverse_lazy("settings_payment_methods")
 
 
 def _module_dashboard(request, model, slug):

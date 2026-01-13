@@ -1,28 +1,53 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card shadow-sm">
-    <div class="card-body">
-        <h2 class="h4 mb-3">{{ form_title }}</h2>
-        <form method="post" novalidate>
-            {% csrf_token %}
-            {{ form.non_field_errors }}
-            <div class="row g-3">
-                {% for field in form %}
-                    <div class="col-md-6">
-                        <label class="form-label">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="text-danger small">{{ field.errors }}</div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="mt-4">
-                <button class="btn btn-primary" type="submit">Guardar</button>
-                <a class="btn btn-outline-secondary" href="javascript:history.back()">Cancelar</a>
-            </div>
-        </form>
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h2 class="h4 mb-1">{{ form_title }}</h2>
+            <p class="text-muted mb-0">Completa los datos para mantener tu flujo financiero actualizado.</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="javascript:history.back()">Volver</a>
     </div>
+    {% if category_empty %}
+        <div class="alert alert-warning d-flex justify-content-between align-items-center">
+            <div>
+                <strong>No tienes categorías activas.</strong>
+                <span class="text-muted">Crea una para continuar.</span>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ category_settings_url }}">Crear categorías</a>
+        </div>
+    {% endif %}
+    {% if payment_method_empty %}
+        <div class="alert alert-warning d-flex justify-content-between align-items-center">
+            <div>
+                <strong>No tienes métodos de pago activos.</strong>
+                <span class="text-muted">Agrega al menos uno.</span>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ payment_settings_url }}">Crear métodos</a>
+        </div>
+    {% endif %}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row g-3">
+            {% for field in form %}
+                <div class="col-md-6">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Guardar</button>
+            <a class="btn btn-outline-secondary" href="javascript:history.back()">Cancelar</a>
+        </div>
+    </form>
 </div>
 {% endblock %}

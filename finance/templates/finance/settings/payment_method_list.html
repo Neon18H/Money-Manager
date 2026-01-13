@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block header %}Métodos de pago{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 mb-1">Métodos de pago</h2>
+        <p class="text-muted mb-0">Mantén actualizados los medios de pago disponibles.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'settings_home' %}">Volver a configuración</a>
+        <a class="btn btn-primary" href="{{ create_url }}"><i class="bi bi-plus-circle me-1"></i> Añadir</a>
+    </div>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                    <th class="text-end"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in object_list %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>
+                            {% if item.is_active %}
+                                <span class="badge badge-soft">Activo</span>
+                            {% else %}
+                                <span class="badge badge-outline">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group" role="group">
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'settings_payment_method_update' item.pk %}">Editar</a>
+                                <a class="btn btn-sm btn-outline-danger" href="{% url 'settings_payment_method_delete' item.pk %}">Eliminar</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="empty-state">
+                                <i class="bi bi-credit-card"></i>
+                                <h6 class="mt-2">No hay métodos registrados</h6>
+                                <p class="mb-3">Agrega uno para registrar tus movimientos.</p>
+                                <a class="btn btn-primary" href="{{ create_url }}">Crear método</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% if is_paginated %}
+    <nav class="mt-3">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
